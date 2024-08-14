@@ -72,25 +72,25 @@ class Register extends Component {
               <Form>
                 <Form.Group>
                   <Form.Label>Ad Soyad</Form.Label>
-                  <Form.Control name={"name"} onChange={handleChange('name')} onBlur={handleBlur} type="text" placeholder="Ad Soyad" />
+                  <Form.Control name={"name"} value={values.name} onChange={handleChange('name')} onBlur={handleBlur} type="text" placeholder="Ad Soyad" />
                 {(errors.name && touched.name) && <small style={{color:"red"}}>{errors.name}</small>}
                 </Form.Group>
 
                 <Form.Group className={"mt-3"}>
                   <Form.Label>E-Posta Adresi</Form.Label>
-                  <Form.Control name={"email"} onChange={handleChange('email')} onBlur={handleBlur} type="text" placeholder="E-Posta Adresi" />
+                  <Form.Control name={"email"} value={values.email} onChange={handleChange('email')} onBlur={handleBlur} type="text" placeholder="E-Posta Adresi" />
                   {(errors.email && touched.email) && <small style={{color:"red"}}>{errors.email}</small>}
                 </Form.Group>
 
                 <Form.Group className={"mt-3"}>
                   <Form.Label>Şifre</Form.Label>
-                  <Form.Control name={"password"} onChange={handleChange('password')} onBlur={handleBlur} type="password" placeholder="Şifre" />
+                  <Form.Control name={"password"} value={values.password} onChange={handleChange('password')} onBlur={handleBlur} type="password" placeholder="Şifre" />
                   {(errors.password && touched.password) && <small style={{color:"red"}}>{errors.password}</small>}
                 </Form.Group>
 
                 <Form.Group className={"mt-3"}>
                   <Form.Label>Şifre (Tekrar)</Form.Label>
-                  <Form.Control name={"password_confirmation"} onChange={handleChange('password_confirmation')} onBlur={handleBlur} type="password" placeholder="Şifre (Tekrar)" />
+                  <Form.Control name={"password_confirmation"} value={values.password_confirmation} onChange={handleChange('password_confirmation')} onBlur={handleBlur} type="password" placeholder="Şifre (Tekrar)" />
                   {(errors.password_confirmation && touched.password_confirmation) && <small style={{color:"red"}}>{errors.password_confirmation}</small>}
                 </Form.Group>
 
