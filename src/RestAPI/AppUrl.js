@@ -9,6 +9,9 @@ class AppUrl
     static logout   = this.apiUrl + "/client/logout";
     static check    = this.apiUrl + "/client/check";
     static profile  = this.apiUrl + "/client/profile";
+    
+    // home
+    static home = this.apiUrl + "/home";
 
 }
 
