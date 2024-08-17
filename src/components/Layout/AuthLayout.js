@@ -15,6 +15,8 @@ class AuthLayout extends Component
         const {navigate} = this.props;
 
         this.props.AuthStore.getToken();
+
+        
         const token = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState.user.access_token : null;
         await RestClient.getRequest(AppUrl.check,{
             headers : { 
@@ -45,6 +47,7 @@ class AuthLayout extends Component
             this.props.AuthStore.removeToken();
             navigate("/login");
         })
+            
     }
 
     render() {

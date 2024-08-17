@@ -20,7 +20,7 @@ class AppRouter extends Component {
         const token = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState.user.access_token : null;
         await RestClient.getRequest(AppUrl.check,{
             headers : {
-                "Authorization" : "Bearer" + token
+                "Authorization" : "Bearer " + token
             }
         }).then((res) => { 
             const result = res.data;

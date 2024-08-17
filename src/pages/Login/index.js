@@ -24,9 +24,9 @@ class Login extends Component {
 
       if(status === 200){ 
         let userData = {
-          id    : res.data.id,
-          name  : res.data.name,
-          email : res.data.email,
+          id    : result.data.id,
+          name  : result.data.name,
+          email : result.data.email,
           access_token : result.data.access_token
         };
 
