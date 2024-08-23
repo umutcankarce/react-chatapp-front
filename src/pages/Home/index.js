@@ -70,7 +70,7 @@ class Home extends Component {
         return (
           <ListGroup.Item as={Link} to={`/message/${item.id}`} key={index} className={"d-flex justify-content-between"}>
             {item.name}
-            <Badge pill bg={"success"} className={"text-white"}>0</Badge>
+            <Badge pill bg={"success"} className={"text-white"}>{item.dont_read}</Badge>
           </ListGroup.Item>
         )
     })
