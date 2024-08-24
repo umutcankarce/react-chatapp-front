@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component,createRef } from 'react'
 import withRouter from '../../withRouter';
 import { inject,observer } from 'mobx-react';
 import RestClient from '../../RestAPI/RestClient';
@@ -8,6 +8,7 @@ import AuthLayout from '../../components/Layout/AuthLayout';
 import Header from '../../components/common/Header';
 import "../../css/Message.css";
 import {Card,Row,Col,Container,InputGroup,FormControl,Button} from "react-bootstrap";
+import SocketIO  from 'socket.io-client';
 
 
 class Message extends Component {
@@ -15,52 +16,218 @@ class Message extends Component {
     constructor(props){
         super(props);
 
-        this.state = { 
+        const {user} = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState : false;
+        const {params} = this.props;
 
+        this.state = { 
+            receiver_info : {},
+            form : {
+                sender_id   : parseInt(user.id),
+                receiver_id : parseInt(params.id),
+                message_id : '',
+                message : ''
+            },
+            messages : []
         };
+
+        this.chatContainerRef = createRef();
+
     }
 
     componentDidMount(){ 
         this.searchReceiver();
+        this.connectSocket();
     }
 
-    searchReceiver = () => {
-        const {navigate,params} = this.props;
-        this.props.AuthStore.getToken();
+    connectSocket = () => { 
+        this.socket = SocketIO("http://localhost:4444",{transports:["websocket","polling","flashsocket"]});
+        this.socket.on("send_message",(data)=> { 
+            this.messageRender();
+        })
+    }
+
+    messageRender = () => { 
+        this.socket.on("message_show",(data) => {
+            const {messages} = this.state;
+
+            let newMessages = [...messages,{
+                "mgc_sender" : data.mgc_sender,
+                "mgc_content" : data.mgc_content,
+            }];
+
+            this.setState({
+                messages : newMessages
+            });
+        })
+    }
+
+    componentDidUpdate(prevProps,prevState,snapshot)
+    {
+        if(this.chatContainerRef.current){
+            this.chatContainerRef.current.scrollTop = this.chatContainerRef.current.scrollHeight;
+        }
+    }
+
+    componentWillUnmount() { 
+        this.socket.close();
+    }
+
+    handleMessage = (event) => { 
+        let newForm  = {
+            ...this.state.form,
+            message: event.target.value
+        };
+
+        this.setState({
+            form : newForm,
+        })
+    }
+
+    sendMessage = () => { 
         const token = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState.user.access_token : null;
-        
-        RestClient.postRequest(AppUrl.search_receiver,{
-            "receiver_id" : parseInt(params.id)
-        },{
-            headers: {
-                "Authorization": "Bearer " + token
+        const {navigate} = this.props;
+        RestClient.postRequest(AppUrl.send_message,this.state.form,{
+            headers : {
+                "Authorization" : "Bearer " + token
             }
         }).then((res) => { 
-
             const result = res.data;
-            if(result.success === false)
-            { 
+            if(result.success === true){
+                const {form,messages} = this.state;
+                let newMessages = [...messages,{
+                    "mgc_sender"  : form.sender_id,
+                    "mgc_content" : form.message
+                }]
+
+                this.setState({
+                    messages : newMessages,
+                },() => { 
+                    let newForm = {
+                        ...this.state.form,
+                        message : ''
+                    }
+
+                    this.setState({
+                        form : newForm
+                    })
+                    this.messageRender();
+                })
+            }else{
                 Notification.error(result);
                 navigate("/");
-            }else {
-
             }
-
 
         }).catch((err) => { 
             console.log(err);
             Notification.error({
                 title : "Başarısız",
-                text  : "Bir Hata Oluştu. Lütfen Daha Sonra Tekrar Deneyiniz."
+                text : "Bir Hata Oluştu.Lütfen Daha Sonra Tekrar Deneyiniz."
+            });
+        });
+    }
+
+    getMessages = () => { 
+        const token = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState.user.access_token : null;
+        const {navigate} = this.props;
+        RestClient.postRequest(AppUrl.get_messages,{
+            "mgc_messageId" : this.state.form.message_id,
+        },{
+            headers:{
+                "Authorization" : "Bearer " + token
+            }
+        }).then((res) => { 
+            const result = res.data;
+            this.setState({
+                messages : result.data.messages
             })
+        }).catch((err) => { 
+            console.log(err);
+            Notification.error({
+                title : "Başarısız",
+                text : "Bir Hata Oluştu.Lütfen Daha Sonra Tekrar Deneyiniz."
+            });
+            navigate("/");
+        });  
+    }
+
+    messageRead = (message_id) => { 
+        const token  = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState.user.access_token : null;
+        const {user} = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState : false;
+
+        setInterval(async function() { 
+            RestClient.postRequest(AppUrl.update_read,{
+                "mgc_messageId" : message_id,
+                "mgc_receiver" : user.id
+            },{
+                headers:{
+                    "Authorization" : "Bearer " + token
+                }       
+            }).then((res) => { 
+
+            }).catch((err) => { 
+
+            })
+        },3000);
+
+    }
+
+
+
+    searchReceiver = () => {
+        const {navigate, params} = this.props;
+        this.props.AuthStore.getToken();
+        const token = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState.user.access_token : null;
+
+        RestClient.postRequest(AppUrl.search_receiver, {
+            receiver_id: parseInt(params.id)
+        }, {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        }).then((res) => {
+            const result = res.data;
+
+            console.log(res);
+
+            if (result.success === false) {
+                Notification.error(result);
+                navigate("/");
+            } else {
+                const newForm = {
+                    ...this.state.form,
+                    message_id: res.data.message_id
+                }
+
+                this.setState({
+                    isLoading : false,
+                    receiver_info: result.data.receiver_info,
+                    form: newForm
+                }, () => {
+
+                    // SOCKET KISMINDA KULLANICILAR DIZISINE KAYDEDELİM
+                    this.socket.emit("add_user", {
+                        "sender_id": this.state.form.sender_id,
+                        "message_id": this.state.form.message_id
+                    });
+
+                    this.getMessages();
+                    this.messageRead(this.state.form.message_id);
+                });
+            }
+        }).catch((err) => {
+            console.log(err);
+            Notification.error({
+                title: "Başarısız",
+                message: "Bir Hata Oluştu. Lütfen Daha Sonra Tekrar Deneyin."
+            });
             navigate("/");
         })
-
-    } 
-
+    }
   render() {
+    const {user} = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState : false;
+    const {receiver_info,messages,form} = this.state;
+
     return (
-       
         <AuthLayout>
             <Header/>
         <Container className={"mt-5"}>
@@ -74,33 +241,28 @@ class Message extends Component {
                             <div className="py-2 px-4 border-bottom d-none d-lg-block">
                                 <div className="d-flex align-items-center py-1">
                                     <div className="flex-grow-1 pl-3">
-                                        <strong>{'alici'}</strong>
+                                        <strong>'{receiver_info.name}</strong>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="position-relative p-3">
-                                <div className="chat-messages">
-                                        <div  style={{marginBottom: '2rem', marginTop: '2rem'}}
-                                             className={'mesajBlok chat-message-right'}>
-                                            <div className="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                                                Test Mesaj
-                                            </div>
-                                        </div>
-                                        <div  style={{marginBottom: '2rem', marginTop: '2rem'}}
-                                             className={'mesajBlok chat-message-left'}>
-                                            <div className="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                                                Test Mesaj
-                                            </div>
-                                        </div>
+                                <div className="chat-messages" red={this.chatContainerRef}>
+                                {messages.map((item, index) => (
+                                     <div key={index} style={{marginBottom: '2rem', marginTop: '2rem'}}
+                                     className={`mesajBlok ${(item.mgc_sender === user.id) ? 'chat-message-right' : 'chat-message-left'}`}>
+                                    <div className="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
+                                        {item.mgc_content}
+                                    </div>
+                                </div>
+                                ))}    
                                 </div>
                             </div>
 
                             <div className="flex-grow-0 py-3 px-4 border-top">
                                 <InputGroup>
-                                    <FormControl 
-                                                 type="text" placeholder="Mesajınız"/>
-                                    <Button 
+                                    <FormControl value={form.message} onChange={this.handleMessage}type="text" placeholder="Mesajınız"/>
+                                    <Button onClick={this.sendMessage} disabled={form.message === ''} 
                                             variant="primary">Gönder</Button>
                                 </InputGroup>
                             </div>

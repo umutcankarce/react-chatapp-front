@@ -15,6 +15,10 @@ class AppUrl
 
     // message 
     static search_receiver = this.apiUrl + "/message/search-receiver";
+    static get_messages    = this.apiUrl + "/message/get-messages";
+    static send_message    = this.apiUrl + "/message/send-message";
+    static update_read     = this.apiUrl + "/message/update-read";
+    
 
 }
 

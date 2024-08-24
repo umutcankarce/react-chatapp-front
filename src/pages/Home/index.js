@@ -29,6 +29,10 @@ class Home extends Component {
     this.getClients();
   }
 
+  componentWillUnmount(){
+    this.socket.close();
+  }
+
   connectUser = () => {
       this.props.AuthStore.getToken();
       const {user} = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState : null;
