@@ -19,7 +19,6 @@ class AppUrl
     static send_message    = this.apiUrl + "/message/send-message";
     static update_read     = this.apiUrl + "/message/update-read";
     
-
 }
 
 export default AppUrl;

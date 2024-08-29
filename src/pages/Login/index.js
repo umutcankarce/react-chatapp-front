@@ -6,8 +6,8 @@ import { inject, observer } from 'mobx-react';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import Notification from '../../RestAPI/Notification';
-import RestClient from "../../RestAPI/RestClient"
-import AppUrl from "../../RestAPI/AppUrl"
+import RestClient from "../../RestAPI/RestClient";
+import AppUrl from "../../RestAPI/AppUrl";
 
 class Login extends Component {
 

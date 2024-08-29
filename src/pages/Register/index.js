@@ -5,9 +5,9 @@ import { Container,Row,Col,Card,Form,Button} from 'react-bootstrap';
 import { inject, observer } from 'mobx-react';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import RestClient from "../../RestAPI/RestClient"
-import AppUrl from "../../RestAPI/AppUrl"
-import Notification from "../../RestAPI/Notification"
+import RestClient from "../../RestAPI/RestClient";
+import AppUrl from "../../RestAPI/AppUrl";
+import Notification from "../../RestAPI/Notification";
 
 class Register extends Component {
 

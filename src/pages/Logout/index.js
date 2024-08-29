@@ -4,7 +4,7 @@ import { inject,observer } from 'mobx-react';
 import RestClient from '../../RestAPI/RestClient';
 import AppUrl from '../../RestAPI/AppUrl';
 
-export class Logout extends Component {
+class Logout extends Component {
 
     constructor(props){ 
         super(props);
@@ -21,7 +21,7 @@ export class Logout extends Component {
         
         RestClient.getRequest(AppUrl.logout, {
             headers: {
-                "Authorization": "Bearer " + token
+                "Authorization": "Bearer "+token
             }
         }).then((res) => {
             this.props.AuthStore.removeToken();

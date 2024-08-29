@@ -34,12 +34,27 @@ class Home extends Component {
   }
 
   connectUser = () => {
-      this.props.AuthStore.getToken();
-      const {user} = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState : null;
-      this.socket.emit("connect_user",{
-        userId : user.id,
-      })
-  }
+    const {user} = (this.props.AuthStore.appState !== null) ? this.props.AuthStore.appState : null;
+
+    if (user !== null) {
+        this.socket.emit("connect_user", {
+            userId: user.id
+        });
+
+        this.socket.on("message_notification", (data) => {
+            const {clients} = this.state;
+            for (const user of clients.data) {
+                if (user.id === data.sender_id) {
+                    const ref = this.clientRefs[user.id];
+                    if (ref) {
+                        ref.textContent = data.dont_read;
+                    }
+                    break;
+                }
+            }
+        });
+    }
+}
 
   getClients = (data="") => { 
     this.props.AuthStore.getToken();
